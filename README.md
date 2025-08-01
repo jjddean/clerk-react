@@ -57,4 +57,4 @@ You can customize the Clerk components by following the [Clerk documentation](ht
 
 - [Clerk Documentation](https://clerk.com/docs)
 - [React Router Documentation](https://reactrouter.com/)
-- [Vite Documentation](https://vitejs.dev/)
+- [Vite Documentation](https://vitejs.dev/)# my-app2
