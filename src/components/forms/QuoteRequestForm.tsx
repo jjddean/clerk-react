@@ -24,6 +24,7 @@ interface QuoteFormData {
     phone: string;
     company: string;
   };
+  selectedRate?: CarrierRate;
 }
 
 interface QuoteRequestFormProps {
@@ -56,7 +57,7 @@ const QuoteRequestForm: React.FC<QuoteRequestFormProps> = ({ onSubmit, onCancel 
       setFormData(prev => ({
         ...prev,
         [parent]: {
-          ...prev[parent as keyof QuoteFormData],
+          ...(prev[parent as keyof QuoteFormData] as any),
           [child]: value
         }
       }));
@@ -78,7 +79,7 @@ const QuoteRequestForm: React.FC<QuoteRequestFormProps> = ({ onSubmit, onCancel 
     e.preventDefault();
     onSubmit({
       ...formData,
-      selectedRate: selectedRate
+      selectedRate: selectedRate || undefined
     });
   };
 
