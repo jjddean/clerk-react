@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { SignedIn, SignedOut, UserButton } from '@clerk/clerk-react';
 import AuthButtons from './AuthButtons';
+import NotificationCenter from './ui/notification-center';
 
 interface SubMenuItem {
   label: string;
@@ -57,8 +58,8 @@ const Navbar: React.FC = () => {
       path: '/contact',
       protected: false
     },
-    { 
-      label: 'Dashboard', 
+    {
+      label: 'Dashboard',
       protected: true,
       submenu: [
         { label: 'Overview', path: '/dashboard', protected: true },
@@ -67,8 +68,9 @@ const Navbar: React.FC = () => {
         { label: 'Compliance', path: '/compliance', protected: true },
         { label: 'Reports', path: '/reports', protected: true },
         { label: 'Account', path: '/account', protected: true },
-      ] 
+      ]
     },
+
   ];
 
   const toggleSubmenu = (label: string) => {
@@ -83,7 +85,7 @@ const Navbar: React.FC = () => {
     <nav className="navbar">
       <div className="navbar-container">
         <Link to="/" className="navbar-logo">
-          FreightSync
+          MarketLive
         </Link>
 
         <ul className="nav-menu">
@@ -173,7 +175,10 @@ const Navbar: React.FC = () => {
 
         <div className="auth-section">
           <SignedIn>
-            <UserButton />
+            <div className="flex items-center space-x-4">
+              <NotificationCenter />
+              <UserButton />
+            </div>
           </SignedIn>
           <SignedOut>
             <AuthButtons />

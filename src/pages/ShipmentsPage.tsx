@@ -1,109 +1,298 @@
 import React, { useState } from 'react';
+import MediaCardHeader from '@/components/ui/media-card-header';
+import DataTable from '@/components/ui/data-table';
+import { Button } from '@/components/ui/button';
+import Footer from '@/components/layout/Footer';
+import AdvancedSearch from '@/components/ui/advanced-search';
+import RealTimeTracker from '@/components/ui/real-time-tracker';
 
 const ShipmentsPage = () => {
   const [activeTab, setActiveTab] = useState('active');
-  
+
   const shipments = {
     active: [
-      { id: 'SH-2023-001', origin: 'New York', destination: 'London', status: 'In Transit', eta: '2023-11-15', carrier: 'OceanFreight Ltd' },
-      { id: 'SH-2023-002', origin: 'Shanghai', destination: 'Los Angeles', status: 'Customs Clearance', eta: '2023-11-10', carrier: 'AsiaExpress Shipping' },
-      { id: 'SH-2023-004', origin: 'Rotterdam', destination: 'Singapore', status: 'Loading', eta: '2023-11-20', carrier: 'EuroAsia Lines' },
-      { id: 'SH-2023-005', origin: 'Miami', destination: 'Rio de Janeiro', status: 'Booking Confirmed', eta: '2023-11-25', carrier: 'Americas Shipping Co' },
+      {
+        id: 'SH-2024-001',
+        origin: 'London, UK',
+        destination: 'Hamburg, DE',
+        status: 'In Transit',
+        eta: '2024-08-05',
+        carrier: 'Maersk Line',
+        value: '$12,450',
+        container: 'MSKU-123456-7'
+      },
+      {
+        id: 'SH-2024-002',
+        origin: 'Shanghai, CN',
+        destination: 'Felixstowe, UK',
+        status: 'Customs Clearance',
+        eta: '2024-08-03',
+        carrier: 'COSCO Shipping',
+        value: '$8,750',
+        container: 'COSU-789012-3'
+      },
+      {
+        id: 'SH-2024-004',
+        origin: 'Rotterdam, NL',
+        destination: 'Singapore, SG',
+        status: 'Loading',
+        eta: '2024-08-12',
+        carrier: 'MSC',
+        value: '$18,900',
+        container: 'MSCU-345678-9'
+      },
+      {
+        id: 'SH-2024-005',
+        origin: 'Miami, US',
+        destination: 'Southampton, UK',
+        status: 'Booking Confirmed',
+        eta: '2024-08-15',
+        carrier: 'Hapag-Lloyd',
+        value: '$22,100',
+        container: 'HLCU-901234-5'
+      },
     ],
     completed: [
-      { id: 'SH-2023-003', origin: 'Hamburg', destination: 'Dubai', status: 'Delivered', eta: '2023-10-30', carrier: 'MidEast Carriers' },
-      { id: 'SH-2022-045', origin: 'Tokyo', destination: 'Sydney', status: 'Delivered', eta: '2022-12-15', carrier: 'PacificRoute Shipping' },
-      { id: 'SH-2022-032', origin: 'Vancouver', destination: 'Hong Kong', status: 'Delivered', eta: '2022-11-05', carrier: 'TransPacific Lines' },
+      {
+        id: 'SH-2024-003',
+        origin: 'Hamburg, DE',
+        destination: 'Dubai, AE',
+        status: 'Delivered',
+        eta: '2024-07-28',
+        carrier: 'Emirates Shipping',
+        value: '$15,200',
+        container: 'EMSU-567890-1'
+      },
+      {
+        id: 'SH-2024-006',
+        origin: 'Tokyo, JP',
+        destination: 'Long Beach, US',
+        status: 'Delivered',
+        eta: '2024-07-20',
+        carrier: 'ONE',
+        value: '$19,800',
+        container: 'ONEU-234567-8'
+      },
     ]
   };
 
+  const [filteredShipments, setFilteredShipments] = useState(shipments);
+
+  // Search filters configuration
+  const searchFilters = [
+    {
+      key: 'carrier',
+      label: 'Carrier',
+      type: 'select' as const,
+      options: [
+        { value: 'Maersk Line', label: 'Maersk Line', count: 1 },
+        { value: 'COSCO Shipping', label: 'COSCO Shipping', count: 1 },
+        { value: 'MSC', label: 'MSC', count: 1 },
+        { value: 'Hapag-Lloyd', label: 'Hapag-Lloyd', count: 1 },
+        { value: 'ONE', label: 'ONE', count: 1 },
+        { value: 'Emirates Shipping', label: 'Emirates Shipping', count: 1 }
+      ]
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'multiselect' as const,
+      options: [
+        { value: 'In Transit', label: 'In Transit', count: 1 },
+        { value: 'Customs Clearance', label: 'Customs Clearance', count: 1 },
+        { value: 'Loading', label: 'Loading', count: 1 },
+        { value: 'Booking Confirmed', label: 'Booking Confirmed', count: 1 },
+        { value: 'Delivered', label: 'Delivered', count: 2 }
+      ]
+    },
+    {
+      key: 'value',
+      label: 'Shipment Value (£)',
+      type: 'range' as const
+    },
+    {
+      key: 'eta',
+      label: 'ETA',
+      type: 'date' as const
+    }
+  ];
+
+  const handleSearch = (searchTerm: string, filters: Record<string, any>) => {
+    let filtered = { ...shipments };
+
+    // Apply search term
+    if (searchTerm) {
+      Object.keys(filtered).forEach(tab => {
+        filtered[tab as keyof typeof filtered] = filtered[tab as keyof typeof filtered].filter(shipment =>
+          Object.values(shipment).some(value =>
+            String(value).toLowerCase().includes(searchTerm.toLowerCase())
+          )
+        );
+      });
+    }
+
+    // Apply filters
+    Object.keys(filtered).forEach(tab => {
+      filtered[tab as keyof typeof filtered] = filtered[tab as keyof typeof filtered].filter(shipment => {
+        return Object.entries(filters).every(([key, value]) => {
+          if (!value) return true;
+
+          switch (key) {
+            case 'carrier':
+              return shipment.carrier === value;
+            case 'status':
+              return Array.isArray(value) ? value.includes(shipment.status) : shipment.status === value;
+            case 'value':
+              const shipmentValue = parseFloat(shipment.value.replace(/[£$,]/g, ''));
+              const min = value.min ? parseFloat(value.min) : 0;
+              const max = value.max ? parseFloat(value.max) : Infinity;
+              return shipmentValue >= min && shipmentValue <= max;
+            case 'eta':
+              return shipment.eta === value;
+            default:
+              return true;
+          }
+        });
+      });
+    });
+
+    setFilteredShipments(filtered);
+  };
+
+  const handleClearSearch = () => {
+    setFilteredShipments(shipments);
+  };
+
+  const shipmentColumns = [
+    { key: 'id' as keyof typeof shipments.active[0], header: 'Shipment ID', sortable: true },
+    {
+      key: 'origin' as keyof typeof shipments.active[0],
+      header: 'Route',
+      sortable: true,
+      render: (value: string, row: typeof shipments.active[0]) => (
+        <span className="text-sm">
+          <div className="font-medium">{row.origin}</div>
+          <div className="text-gray-500">→ {row.destination}</div>
+        </span>
+      )
+    },
+    { key: 'carrier' as keyof typeof shipments.active[0], header: 'Carrier', sortable: true },
+    {
+      key: 'status' as keyof typeof shipments.active[0],
+      header: 'Status',
+      sortable: true,
+      render: (value: string) => (
+        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+          value === 'Delivered' ? 'bg-green-100 text-green-800' :
+          value === 'In Transit' ? 'bg-blue-100 text-blue-800' :
+          value === 'Customs Clearance' ? 'bg-yellow-100 text-yellow-800' :
+          value === 'Loading' ? 'bg-purple-100 text-purple-800' :
+          value === 'Booking Confirmed' ? 'bg-gray-100 text-gray-800' :
+          'bg-gray-100 text-gray-800'
+        }`}>
+          {value}
+        </span>
+      )
+    },
+    { key: 'eta' as keyof typeof shipments.active[0], header: 'ETA', sortable: true },
+    { key: 'value' as keyof typeof shipments.active[0], header: 'Value', sortable: true },
+    {
+      key: 'container' as keyof typeof shipments.active[0],
+      header: 'Actions',
+      render: (value: string, row: typeof shipments.active[0]) => (
+        <div className="flex space-x-2">
+          <Button variant="outline" size="sm">View</Button>
+          {activeTab === 'active' && (
+            <Button variant="outline" size="sm">Track</Button>
+          )}
+        </div>
+      )
+    },
+  ];
+
   return (
-    <div className="page-container">
-      <h1>Your Shipments</h1>
-      <p className="shipments-intro">View active and past shipments, with real-time updates.</p>
-      
-      <div className="page-content">
-        <div className="shipments-tabs">
-          <button 
-            className={`tab-button ${activeTab === 'active' ? 'active' : ''}`}
-            onClick={() => setActiveTab('active')}
-          >
-            Active Shipments
-          </button>
-          <button 
-            className={`tab-button ${activeTab === 'completed' ? 'active' : ''}`}
-            onClick={() => setActiveTab('completed')}
-          >
-            Completed Shipments
-          </button>
-        </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Shipments Header */}
+      <MediaCardHeader
+        title="Active Shipments"
+        subtitle="Logistics Management"
+        description="Monitor your global shipments with real-time tracking and comprehensive logistics oversight."
+        backgroundImage="https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
+        overlayOpacity={0.6}
+        className="h-20"
+      />
 
-        <div className="shipments-controls">
-          <div className="search-filter">
-            <input type="text" placeholder="Search shipments..." className="search-input" />
-            <select className="filter-select">
-              <option value="">All Carriers</option>
-              <option value="OceanFreight Ltd">OceanFreight Ltd</option>
-              <option value="AsiaExpress Shipping">AsiaExpress Shipping</option>
-              <option value="EuroAsia Lines">EuroAsia Lines</option>
-              <option value="Americas Shipping Co">Americas Shipping Co</option>
-              <option value="MidEast Carriers">MidEast Carriers</option>
-            </select>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Tab Navigation */}
+        <div className="mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('active')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'active'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Active Shipments ({shipments.active.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('completed')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'completed'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Completed Shipments ({shipments.completed.length})
+              </button>
+            </nav>
           </div>
-          <button className="new-shipment-btn">+ New Shipment</button>
         </div>
 
-        <div className="shipments-table-container">
-          <table className="shipments-table">
-            <thead>
-              <tr>
-                <th>Shipment ID</th>
-                <th>Route</th>
-                <th>Carrier</th>
-                <th>Status</th>
-                <th>ETA</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {shipments[activeTab as keyof typeof shipments].map((shipment, index) => (
-                <tr key={index}>
-                  <td>{shipment.id}</td>
-                  <td>{shipment.origin} → {shipment.destination}</td>
-                  <td>{shipment.carrier}</td>
-                  <td>
-                    <span className={`status-badge status-${shipment.status.toLowerCase().replace(' ', '-')}`}>
-                      {shipment.status}
-                    </span>
-                  </td>
-                  <td>{shipment.eta}</td>
-                  <td>
-                    <div className="action-buttons">
-                      <button className="action-btn view-btn">View</button>
-                      {activeTab === 'active' && (
-                        <button className="action-btn track-btn">Track</button>
-                      )}
-                      {activeTab === 'completed' && (
-                        <button className="action-btn docs-btn">Docs</button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* Advanced Search */}
+        <div className="mb-6">
+          <AdvancedSearch
+            filters={searchFilters}
+            onSearch={handleSearch}
+            onClear={handleClearSearch}
+            placeholder="Search shipments by ID, route, carrier, or container..."
+          />
         </div>
 
+        {/* Actions Bar */}
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold text-gray-900">
+            {activeTab === 'active' ? 'Active' : 'Completed'} Shipments
+            <span className="text-sm text-gray-500 ml-2">
+              ({filteredShipments[activeTab as keyof typeof filteredShipments].length} results)
+            </span>
+          </h2>
+          <div className="flex space-x-3">
+            <Button variant="outline">Export</Button>
+            <Button>New Shipment</Button>
+          </div>
+        </div>
+
+        {/* Shipments Table */}
+        <DataTable
+          data={filteredShipments[activeTab as keyof typeof filteredShipments]}
+          columns={shipmentColumns}
+          searchPlaceholder="Search within results..."
+          rowsPerPage={10}
+        />
+
+        {/* Real-Time Tracking for Active Shipments */}
         {activeTab === 'active' && (
-          <div className="shipment-map-container">
-            <h2>Shipment Tracking Map</h2>
-            <div className="shipment-map-placeholder">
-              <p>Interactive map showing current shipment locations would appear here.</p>
-              <p>Select a shipment to view detailed tracking information.</p>
-            </div>
+          <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <RealTimeTracker shipmentId="SH-2024-001" />
+            <RealTimeTracker shipmentId="SH-2024-002" />
           </div>
         )}
       </div>
+
+      <Footer />
     </div>
   );
 };

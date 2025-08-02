@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { ClerkProvider, SignedIn, SignedOut, UserButton } from '@clerk/clerk-react';
 import { BrowserRouter, Route, Routes, useNavigate, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import MobileNavigation from './components/mobile/MobileNavigation';
 
 // Import all pages
 import {
@@ -19,6 +20,7 @@ import {
   ReportsPage,
   AccountPage
 } from './pages';
+import ApiDocsPage from './pages/ApiDocsPage';
 
 // Import your publishable key
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -33,10 +35,39 @@ interface LayoutProps {
 }
 
 function Layout({ children }: LayoutProps) {
+  useEffect(() => {
+    // Register service worker for PWA functionality
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then((registration) => {
+          console.log('SW registered: ', registration);
+        })
+        .catch((registrationError) => {
+          console.log('SW registration failed: ', registrationError);
+        });
+    }
+
+    // Add PWA install prompt handling
+    let deferredPrompt: any;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      // Show install button or banner
+      console.log('PWA install prompt available');
+    });
+
+    // Handle app installed
+    window.addEventListener('appinstalled', () => {
+      console.log('PWA was installed');
+      deferredPrompt = null;
+    });
+  }, []);
+
   return (
     <>
       <Navbar />
-      <main>{children}</main>
+      <MobileNavigation />
+      <main className="min-h-screen">{children}</main>
     </>
   );
 }
@@ -74,17 +105,7 @@ function UserDashboardPage() {
   );
 }
 
-function RedirectToSignIn() {
-  const navigate = useNavigate();
-  
-  useEffect(() => {
-    navigate('/sign-in');
-  }, [navigate]);
-  
-  return null;
-}
-
-// Protected route component
+// Protected route component - simplified
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
@@ -93,7 +114,22 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
   return (
     <>
       <SignedIn>{children}</SignedIn>
-      <SignedOut><RedirectToSignIn /></SignedOut>
+      <SignedOut>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Sign In Required</h2>
+            <p className="text-gray-600 mb-6">Please sign in to access this page.</p>
+            <div className="space-x-4">
+              <button className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-700">
+                Sign In
+              </button>
+              <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50">
+                Sign Up
+              </button>
+            </div>
+          </div>
+        </div>
+      </SignedOut>
     </>
   );
 }
@@ -142,7 +178,7 @@ function App() {
         <Layout>
           <Routes>
             {/* Authentication handled via modals */}
-            
+
             {/* Public Pages */}
             <Route path="/" element={<HomePage />} />
             <Route path="/services" element={<ServicesPage />} />
@@ -151,7 +187,8 @@ function App() {
             <Route path="/resources" element={<ResourcesPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
-            
+            <Route path="/api" element={<ApiDocsPage />} />
+
             {/* Protected User Pages */}
             <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
             <Route path="/shipments" element={<ProtectedRoute><ShipmentsPage /></ProtectedRoute>} />
