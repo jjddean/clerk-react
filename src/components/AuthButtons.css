@@ -2,16 +2,22 @@
   display: flex;
   gap: 10px;
   align-items: center;
+  height: 40px;
 }
 
 .sign-in-button,
 .sign-up-button {
-  padding: 8px 16px;
+  padding: 10px 16px;
   border-radius: 4px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 14px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid;
 }
 
 .sign-in-button {

@@ -40,7 +40,7 @@ const HomePage = () => {
           >
             Get Instant Quote
           </Button>
-          <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-primary">
+          <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-primary-800 bg-white/10 backdrop-blur-sm">
             <Link to="/platform">View Platform</Link>
           </Button>
         </div>
